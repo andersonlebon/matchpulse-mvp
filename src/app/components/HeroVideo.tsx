@@ -13,6 +13,7 @@ function prefersReducedMotion() {
 export function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const introVideoRef = useRef<HTMLVideoElement>(null);
+  const collapsedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [ended, setEnded] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -52,13 +53,28 @@ export function HeroVideo() {
     };
   }, [intro]);
 
-  // Once buffered: start playback (with sound if allowed) and run the
-  // fullscreen-to-hero collapse animation.
+  // Shrink the fullscreen video down into its hero slot. The resting size
+  // always fits the screen (≈90% width on mobile, the hero box on desktop).
+  const collapseIntoHero = () => {
+    if (collapsedRef.current) return;
+    collapsedRef.current = true;
+    const slot = videoRef.current;
+    if (!slot) {
+      finishIntro();
+      return;
+    }
+    const rect = slot.getBoundingClientRect();
+    const sx = rect.width / window.innerWidth;
+    const sy = rect.height / window.innerHeight;
+    setIntroTransform(`translate(${rect.left}px, ${rect.top}px) scale(${sx}, ${sy})`);
+  };
+
+  // Once buffered: play fullscreen for the whole clip, then collapse when the
+  // video finishes (not during playback).
   useLayoutEffect(() => {
     if (!intro || !ready) return;
     const iv = introVideoRef.current;
-    const slot = videoRef.current;
-    if (!iv || !slot) return;
+    if (!iv) return;
 
     iv.muted = false;
     iv.volume = 1;
@@ -70,20 +86,16 @@ export function HeroVideo() {
         iv.play().catch(() => {});
       });
 
-    let raf1 = 0;
-    let raf2 = 0;
-    raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        const rect = slot.getBoundingClientRect();
-        const sx = rect.width / window.innerWidth;
-        const sy = rect.height / window.innerHeight;
-        setIntroTransform(`translate(${rect.left}px, ${rect.top}px) scale(${sx}, ${sy})`);
-      });
-    });
+    const onEnded = () => collapseIntoHero();
+    iv.addEventListener('ended', onEnded);
+
+    // Safety net: collapse even if 'ended' never fires (e.g. playback blocked)
+    const durMs = (Number.isFinite(iv.duration) && iv.duration > 0 ? iv.duration : 20) * 1000;
+    const fallback = window.setTimeout(collapseIntoHero, durMs + 6000);
 
     return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
+      iv.removeEventListener('ended', onEnded);
+      window.clearTimeout(fallback);
     };
   }, [intro, ready]);
 
@@ -145,12 +157,20 @@ export function HeroVideo() {
     const iv = introVideoRef.current;
     const video = videoRef.current;
     if (video) {
-      if (iv) {
-        // Seamless handoff: carry playback position + sound state
+      if (iv && iv.ended) {
+        // Played through fullscreen — rest on the last frame, offer replay
+        video.muted = iv.muted;
+        if (Number.isFinite(video.duration) && video.duration > 0) {
+          video.currentTime = video.duration;
+        }
+        setPlaying(false);
+        setEnded(true);
+      } else if (iv) {
+        // Handoff mid-playback (fallback path): continue seamlessly
         video.currentTime = iv.currentTime;
         video.muted = iv.muted;
+        video.play().catch(() => {});
       }
-      video.play().catch(() => {});
     }
     setIntro(false);
   };
@@ -180,7 +200,7 @@ export function HeroVideo() {
           style={{
             transformOrigin: '0 0',
             transform: introTransform,
-            transition: 'transform 15s cubic-bezier(0.7, 0, 0.2, 1), border-radius 15s ease',
+            transition: 'transform 1.4s cubic-bezier(0.7, 0, 0.2, 1), border-radius 1.4s ease',
             borderRadius: introTransform === 'none' ? 0 : 16,
             willChange: 'transform',
           }}
