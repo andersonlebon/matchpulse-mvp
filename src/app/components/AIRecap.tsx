@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Sparkles, ChevronRight, Star, TrendingUp, User, BarChart2, Loader2 } from 'lucide-react';
-import { getMatchesByStatus } from '../data/matches';
 import { getTeam } from '../data/teams';
 import { getRecap, getAllRecaps, MatchRecap } from '../data/recaps';
 import { format } from 'date-fns';
@@ -66,7 +65,7 @@ function RecapCard({ recap, matchId, favTeams, onOpen }: {
       <div className="bg-card p-4">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">AI Recap</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Pulse AI</span>
           <span className="ml-auto text-xs text-muted-foreground">{match.stage}</span>
         </div>
 
@@ -126,7 +125,7 @@ function FullRecap({ recap, matchId, onClose }: { recap: MatchRecap; matchId: st
     { id: 'summary' as const, label: 'Summary' },
     { id: 'stats' as const, label: 'Stats' },
     { id: 'events' as const, label: 'Timeline' },
-    { id: 'ai' as const, label: 'AI Insight' },
+    { id: 'ai' as const, label: 'Pulse Insight' },
   ];
 
   return (
@@ -142,7 +141,7 @@ function FullRecap({ recap, matchId, onClose }: { recap: MatchRecap; matchId: st
           </button>
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">AI Recap</span>
+            <span className="text-sm font-semibold text-primary">Pulse AI</span>
           </div>
         </div>
       </div>
@@ -333,8 +332,8 @@ function FullRecap({ recap, matchId, onClose }: { recap: MatchRecap; matchId: st
               <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, #1A56DB, transparent)' }} />
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold text-primary uppercase tracking-wider">AI Tactical Analysis</span>
-                <span className="ml-auto text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded border border-primary/20">Powered by MatchPulse AI</span>
+                <span className="text-sm font-bold text-primary uppercase tracking-wider">Pulse Tactical Analysis</span>
+                <span className="ml-auto text-xs text-muted-foreground bg-primary/10 px-2 py-0.5 rounded border border-primary/20">Powered by Pulse AI</span>
               </div>
               <p className="text-sm text-foreground leading-relaxed">{liveInsight ?? recap.aiInsight}</p>
               <button
@@ -344,7 +343,7 @@ function FullRecap({ recap, matchId, onClose }: { recap: MatchRecap; matchId: st
                 className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-60"
               >
                 {aiRecap.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {aiRecap.isPending ? 'Generating…' : 'Generate with OpenRouter AI'}
+                {aiRecap.isPending ? 'Generating…' : 'Generate with Pulse AI'}
               </button>
               {aiRecap.isError && (
                 <p className="mt-2 text-xs text-accent">{(aiRecap.error as Error).message}</p>
@@ -383,7 +382,7 @@ function FullRecap({ recap, matchId, onClose }: { recap: MatchRecap; matchId: st
             <div className="p-4 rounded-xl bg-secondary border border-border">
               <p className="text-xs text-muted-foreground flex items-start gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                AI recaps use OpenRouter when OPENROUTER_API_KEY is configured on the server. Static recaps are shown as fallback.
+                Pulse AI generates fresh tactical insights when OPENROUTER_API_KEY is set in Vercel. Curated recaps are shown as fallback.
               </p>
             </div>
           </div>
@@ -421,17 +420,17 @@ export function AIRecap({ favTeams }: Props) {
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-primary/15 text-primary border border-primary/25 flex items-center gap-1.5">
               <Sparkles className="w-3 h-3" />
-              AI Feature
+              Pulse AI
             </span>
           </div>
           <h1
             className="font-['Barlow_Condensed'] font-black uppercase text-foreground"
             style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', lineHeight: 1.1 }}
           >
-            AI Match Recaps
+            Pulse AI Match Recaps
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Tactical analysis, key moments, stats, and AI insights for every completed match
+            Tactical analysis, key moments, stats, and Pulse AI insights for every completed match
           </p>
         </div>
 

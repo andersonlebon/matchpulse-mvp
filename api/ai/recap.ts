@@ -20,14 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://matchpulse-mvp.vercel.app',
-        'X-Title': 'MatchPulse MVP',
+        'X-Title': 'MatchPulse Pulse AI',
       },
       body: JSON.stringify({
         model: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are MatchPulse AI, a World Cup analyst. Be concise, factual, and fan-friendly. Use markdown sparingly.',
+            content: 'You are Pulse AI, the MatchPulse World Cup analyst. Be concise, factual, and fan-friendly. Use markdown sparingly.',
           },
           { role: 'user', content: userPrompt },
         ],

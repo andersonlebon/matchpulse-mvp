@@ -28,7 +28,7 @@ const PRIMARY_NAV: { id: Page; label: string; icon: React.FC<{ className?: strin
   { id: 'schedule', label: 'Schedule', icon: Calendar },
   { id: 'bracket', label: 'Bracket', icon: GitBranch },
   { id: 'predictions', label: 'Predict', icon: Trophy },
-  { id: 'recap', label: 'AI Recaps', icon: Sparkles },
+  { id: 'recap', label: 'Pulse AI', icon: Sparkles },
   { id: 'marketplace', label: 'Market', icon: ShoppingBag },
 ];
 

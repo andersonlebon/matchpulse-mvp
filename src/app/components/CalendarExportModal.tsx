@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Download, Calendar, Check, ExternalLink, Apple, Globe } from 'lucide-react';
-import { MATCHES, getMatchesByTeam, Match } from '../data/matches';
-import { getTeam } from '../data/teams';
+import { Match } from '../data/matches';
+import { useFootball } from '../context/FootballContext';
 import { downloadICS, getGoogleCalendarURL, getOutlookCalendarURL } from '../utils/icsGenerator';
 import { format } from 'date-fns';
 
@@ -17,10 +17,12 @@ type Platform = 'ics' | 'google' | 'apple' | 'outlook';
 export function CalendarExportModal({ favTeams, preselectedMatch, onClose }: Props) {
   const [scope, setScope] = useState<ExportScope>(preselectedMatch ? 'single' : favTeams.length > 0 ? 'my-teams' : 'all');
   const [exported, setExported] = useState(false);
+  const { matches, getTeam } = useFootball();
+
+  const upcoming = matches.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD');
 
   const exportMatches = (() => {
     if (scope === 'single' && preselectedMatch) return [preselectedMatch];
-    const upcoming = MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD');
     if (scope === 'all') return upcoming;
     if (scope === 'group-stage') return upcoming.filter(m => m.stage.startsWith('Group'));
     if (scope === 'knockout') return upcoming.filter(m => !m.stage.startsWith('Group'));
@@ -51,11 +53,11 @@ export function CalendarExportModal({ favTeams, preselectedMatch, onClose }: Pro
       id: 'my-teams' as ExportScope,
       label: 'My Teams',
       desc: `Matches for ${favTeams.map(c => getTeam(c).flag + ' ' + getTeam(c).name).join(', ')}`,
-      count: MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD' && (favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam))).length
+      count: upcoming.filter(m => favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam)).length
     }] : []),
-    { id: 'all', label: 'All Matches', desc: 'Complete World Cup 2026 schedule', count: MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD').length },
-    { id: 'group-stage', label: 'Group Stage', desc: 'All 48 group stage matches', count: MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD' && m.stage.startsWith('Group')).length },
-    { id: 'knockout', label: 'Knockout Rounds', desc: 'Round of 32 through the Final', count: MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD' && !m.stage.startsWith('Group')).length },
+    { id: 'all', label: 'All Matches', desc: 'Complete World Cup 2026 schedule', count: upcoming.length },
+    { id: 'group-stage', label: 'Group Stage', desc: 'All 48 group stage matches', count: upcoming.filter(m => m.stage.startsWith('Group')).length },
+    { id: 'knockout', label: 'Knockout Rounds', desc: 'Round of 32 through the Final', count: upcoming.filter(m => !m.stage.startsWith('Group')).length },
     ...(preselectedMatch ? [{
       id: 'single' as ExportScope,
       label: 'This Match Only',

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Bell, Mail, MessageCircle, Smartphone, Check, ChevronRight, Clock, Star, Zap, Lock, Info } from 'lucide-react';
 import { getTeam, getAllTeams } from '../data/teams';
-import { getMatchesByTeam } from '../data/matches';
+import { useFootball } from '../context/FootballContext';
 import { format } from 'date-fns';
 
 interface Props {
@@ -106,6 +106,7 @@ function ChannelCard({
 }
 
 export function Notifications({ favTeams }: Props) {
+  const { getMatchesByTeam } = useFootball();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     ...DEFAULT_PREFS,
     subscribedTeams: [...favTeams],

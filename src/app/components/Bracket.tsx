@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Trophy, Lock, ChevronRight } from 'lucide-react';
-import { getTeam } from '../data/teams';
-import { MATCHES } from '../data/matches';
+import { Match } from '../data/matches';
+import { useFootball } from '../context/FootballContext';
+import { DataSourceBadge } from './DataSourceBadge';
 import { format } from 'date-fns';
 
 interface Props {
@@ -20,8 +21,8 @@ interface BracketSlot {
   winner?: string;
 }
 
-function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: BracketSlot[]; sf: BracketSlot[]; final: BracketSlot; thirdPlace: BracketSlot } {
-  const r32 = MATCHES.filter(m => m.stage === 'Round of 32').map((m, i) => ({
+function buildBracketSlots(matches: Match[]): { r32: BracketSlot[]; r16: BracketSlot[]; qf: BracketSlot[]; sf: BracketSlot[]; final: BracketSlot; thirdPlace: BracketSlot } {
+  const r32 = matches.filter(m => m.stage === 'Round of 32').map((m) => ({
     id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
@@ -32,7 +33,7 @@ function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: Brac
     status: m.status,
   }));
 
-  const r16 = MATCHES.filter(m => m.stage === 'Round of 16').map(m => ({
+  const r16 = matches.filter(m => m.stage === 'Round of 16').map(m => ({
     id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
@@ -41,7 +42,7 @@ function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: Brac
     status: m.status,
   }));
 
-  const qf = MATCHES.filter(m => m.stage === 'Quarter-Final').map(m => ({
+  const qf = matches.filter(m => m.stage === 'Quarter-Final').map(m => ({
     id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
@@ -50,7 +51,7 @@ function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: Brac
     status: m.status,
   }));
 
-  const sf = MATCHES.filter(m => m.stage === 'Semi-Final').map(m => ({
+  const sf = matches.filter(m => m.stage === 'Semi-Final').map(m => ({
     id: m.id,
     home: m.homeTeam,
     away: m.awayTeam,
@@ -59,8 +60,8 @@ function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: Brac
     status: m.status,
   }));
 
-  const finalMatch = MATCHES.find(m => m.stage === 'Final')!;
-  const tpMatch = MATCHES.find(m => m.stage === 'Third Place')!;
+  const finalMatch = matches.find(m => m.stage === 'Final')!;
+  const tpMatch = matches.find(m => m.stage === 'Third Place')!;
 
   return {
     r32,
@@ -73,6 +74,7 @@ function buildBracketSlots(): { r32: BracketSlot[]; r16: BracketSlot[]; qf: Brac
 }
 
 function SlotTeam({ code, score, isWinner }: { code: string; score?: number; isWinner?: boolean }) {
+  const { getTeam } = useFootball();
   const isTBD = code === 'TBD';
   const team = isTBD ? null : getTeam(code);
 
@@ -156,7 +158,8 @@ function RoundColumn({ title, slots, favTeams, dateRange }: {
 
 export function Bracket({ favTeams }: Props) {
   const [view, setView] = useState<'bracket' | 'list'>('list');
-  const { r32, r16, qf, sf, final, thirdPlace } = buildBracketSlots();
+  const { matches } = useFootball();
+  const { r32, r16, qf, sf, final, thirdPlace } = buildBracketSlots(matches);
 
   const STAGE_DATES: Record<string, string> = {
     'Round of 32': 'Jun 30 – Jul 3',
@@ -187,8 +190,9 @@ export function Bracket({ favTeams }: Props) {
             >
               Knockout Bracket
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 flex-wrap">
               Round of 32 → Round of 16 → Quarter-Finals → Semis → Final
+              <DataSourceBadge compact />
             </p>
           </div>
           <div className="flex gap-1 p-1 rounded-xl bg-secondary w-fit">

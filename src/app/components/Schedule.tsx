@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, Download, Calendar, Filter, ChevronDown, Radio } from 'lucide-react';
+import { Search, Download, Calendar, Filter, ChevronDown } from 'lucide-react';
+import { DataSourceBadge } from './DataSourceBadge';
 import { MatchCard } from './MatchCard';
 import { Match } from '../data/matches';
 import { GROUPS } from '../data/teams';
@@ -131,7 +132,7 @@ function GroupCard({
 }
 
 export function Schedule({ favTeams, onExportMatch }: Props) {
-  const { matches, isLive, getTeam, getMatchesByGroup } = useFootball();
+  const { matches, getTeam, getMatchesByGroup } = useFootball();
   const [view, setView] = useState<View>('groups');
   const [search, setSearch] = useState('');
   const [showFavOnly, setShowFavOnly] = useState(false);
@@ -195,11 +196,7 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
             </h1>
             <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 flex-wrap">
               <span>48 teams · {matches.length} matches · USA, Canada & Mexico</span>
-              {isLive && (
-                <span className="inline-flex items-center gap-1 text-[#16A34A] text-xs font-semibold">
-                  <Radio className="w-3 h-3" /> Live data
-                </span>
-              )}
+              <DataSourceBadge compact />
             </p>
           </div>
           <button
