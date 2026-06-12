@@ -12,6 +12,7 @@ function prefersReducedMotion() {
 
 export function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const introVideoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [ended, setEnded] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -20,22 +21,62 @@ export function HeroVideo() {
     if (typeof window === 'undefined') return false;
     return !prefersReducedMotion();
   });
+  const [ready, setReady] = useState(false);
   const [introTransform, setIntroTransform] = useState('none');
 
-  useLayoutEffect(() => {
+  // Wait until the intro video is buffered enough to play through before
+  // revealing/animating it — avoids "audio plays but no picture yet".
+  useEffect(() => {
     if (!intro) return;
+    const iv = introVideoRef.current;
+    if (!iv) return;
+
+    let done = false;
+    const markReady = () => {
+      if (!done) {
+        done = true;
+        setReady(true);
+      }
+    };
+
+    iv.addEventListener('canplaythrough', markReady);
+    iv.addEventListener('error', markReady); // proceed instead of hanging
+    iv.load();
+    // Safety net so we never get stuck on a slow/failed download
+    const fallback = window.setTimeout(markReady, 15000);
+
+    return () => {
+      window.clearTimeout(fallback);
+      iv.removeEventListener('canplaythrough', markReady);
+      iv.removeEventListener('error', markReady);
+    };
+  }, [intro]);
+
+  // Once buffered: start playback (with sound if allowed) and run the
+  // fullscreen-to-hero collapse animation.
+  useLayoutEffect(() => {
+    if (!intro || !ready) return;
+    const iv = introVideoRef.current;
     const slot = videoRef.current;
-    if (!slot) return;
+    if (!iv || !slot) return;
+
+    iv.muted = false;
+    iv.volume = 1;
+    iv.play()
+      .then(() => setMuted(false))
+      .catch(() => {
+        iv.muted = true;
+        setMuted(true);
+        iv.play().catch(() => {});
+      });
 
     let raf1 = 0;
     let raf2 = 0;
     raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
         const rect = slot.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const sx = rect.width / vw;
-        const sy = rect.height / vh;
+        const sx = rect.width / window.innerWidth;
+        const sy = rect.height / window.innerHeight;
         setIntroTransform(`translate(${rect.left}px, ${rect.top}px) scale(${sx}, ${sy})`);
       });
     });
@@ -44,8 +85,9 @@ export function HeroVideo() {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [intro]);
+  }, [intro, ready]);
 
+  // Inline hero video — wired up once the intro has handed off.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -61,18 +103,7 @@ export function HeroVideo() {
     video.addEventListener('volumechange', onVolume);
 
     if (!intro) {
-      video.muted = true;
       video.play().catch(() => {});
-    } else {
-      video.muted = false;
-      video.volume = 1;
-      video.play()
-        .then(() => setMuted(false))
-        .catch(() => {
-          video.muted = true;
-          setMuted(true);
-          video.play().catch(() => {});
-        });
     }
 
     return () => {
@@ -83,7 +114,44 @@ export function HeroVideo() {
     };
   }, [intro]);
 
+  // Unmute on the very first user interaction anywhere on the page (landing
+  // only — this component is only rendered there). Browsers require a gesture
+  // before audio can play, so this makes sound "just work" without aiming.
+  useEffect(() => {
+    let used = false;
+    const unmute = () => {
+      if (used) return;
+      used = true;
+      const target = intro && introVideoRef.current ? introVideoRef.current : videoRef.current;
+      if (target) {
+        target.muted = false;
+        target.volume = 1;
+        target.play().then(() => setMuted(false)).catch(() => {});
+      }
+      cleanup();
+    };
+    const cleanup = () => {
+      window.removeEventListener('pointerdown', unmute);
+      window.removeEventListener('keydown', unmute);
+      window.removeEventListener('touchstart', unmute);
+    };
+    window.addEventListener('pointerdown', unmute);
+    window.addEventListener('keydown', unmute);
+    window.addEventListener('touchstart', unmute);
+    return cleanup;
+  }, [intro]);
+
   const finishIntro = () => {
+    const iv = introVideoRef.current;
+    const video = videoRef.current;
+    if (video) {
+      if (iv) {
+        // Seamless handoff: carry playback position + sound state
+        video.currentTime = iv.currentTime;
+        video.muted = iv.muted;
+      }
+      video.play().catch(() => {});
+    }
     setIntro(false);
   };
 
@@ -108,32 +176,72 @@ export function HeroVideo() {
     <>
       {intro && (
         <div
-          className="fixed inset-0 z-[100] bg-[#04091a] overflow-hidden pointer-events-none"
+          className="fixed inset-0 z-[100] bg-[#04091a] overflow-hidden"
           style={{
             transformOrigin: '0 0',
             transform: introTransform,
-            transition: 'transform 15s cubic-bezier(0.7, 0, 0.2, 1), border-radius 15s ease, opacity 0.4s ease',
+            transition: 'transform 15s cubic-bezier(0.7, 0, 0.2, 1), border-radius 15s ease',
             borderRadius: introTransform === 'none' ? 0 : 16,
             willChange: 'transform',
-            opacity: introTransform === 'none' ? 0 : 1,
           }}
           onTransitionEnd={(e) => {
             if (e.propertyName === 'transform') finishIntro();
           }}
-          aria-hidden
+          onClick={() => {
+            const iv = introVideoRef.current;
+            if (!iv) return;
+            iv.muted = false;
+            iv.volume = 1;
+            iv.play().then(() => setMuted(false)).catch(() => {});
+          }}
         >
-          <div
-            className="w-full h-full bg-[#04091a]"
-            style={{
-              backgroundImage: `url(${VIDEO_SRC})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
+          <video
+            ref={introVideoRef}
+            className="w-full h-full object-cover"
+            src={VIDEO_SRC}
+            playsInline
+            preload="auto"
           />
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 pointer-events-none"
             style={{ background: 'linear-gradient(135deg, rgba(26,86,219,0.2), transparent 45%, rgba(229,53,53,0.18))' }}
           />
+
+          {/* Loading state — bouncing World Cup ball until the video buffers */}
+          {!ready && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-7 bg-[#04091a]">
+              <div className="relative flex h-24 w-20 items-end justify-center">
+                <div style={{ animation: 'hv-ball-bounce 0.85s cubic-bezier(0.5,0.05,0.5,0.95) infinite', transformOrigin: 'bottom center' }}>
+                  <svg width="56" height="56" viewBox="0 0 64 64" style={{ animation: 'hv-spin 1s linear infinite', filter: 'drop-shadow(0 0 12px rgba(26,86,219,0.45))' }} aria-hidden>
+                    <circle cx="32" cy="32" r="29" fill="#FFFFFF" stroke="#0A1528" strokeWidth="2" />
+                    <polygon points="32,20 41,27 37.5,38 26.5,38 23,27" fill="#0A1528" />
+                    <path
+                      d="M32 20V8 M41 27L52 22 M37.5 38L45 49 M26.5 38L19 49 M23 27L12 22"
+                      stroke="#0A1528"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path d="M32 8l-8-4M32 8l8-4M52 22l1-9M12 22l-1-9M45 49l9 1M19 49l-9 1" stroke="#0A1528" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div
+                  className="absolute bottom-0 h-2 w-12 rounded-[50%] bg-[#1A56DB]"
+                  style={{ animation: 'hv-ball-shadow 0.85s cubic-bezier(0.5,0.05,0.5,0.95) infinite', filter: 'blur(3px)' }}
+                  aria-hidden
+                />
+              </div>
+              <span className="text-xs uppercase tracking-[0.25em] text-white/70">Loading the World Cup…</span>
+            </div>
+          )}
+
+          {/* Sound hint if the browser blocked autoplay audio */}
+          {ready && muted && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/15 text-white/90 pointer-events-none">
+              <VolumeX className="w-4 h-4" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Tap for sound</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -151,6 +259,16 @@ export function HeroVideo() {
           @keyframes hv-pulse-ring {
             0% { transform: scale(0.85); opacity: 0.6; }
             100% { transform: scale(1.25); opacity: 0; }
+          }
+          @keyframes hv-ball-bounce {
+            0%   { transform: translateY(-46px) scaleY(1.05) scaleX(0.96); }
+            55%  { transform: translateY(0) scaleY(0.86) scaleX(1.12); }
+            70%  { transform: translateY(-10px) scaleY(1.02) scaleX(0.99); }
+            100% { transform: translateY(-46px) scaleY(1.05) scaleX(0.96); }
+          }
+          @keyframes hv-ball-shadow {
+            0%, 100% { transform: scaleX(0.55); opacity: 0.18; }
+            55%      { transform: scaleX(1); opacity: 0.45; }
           }
         `}</style>
 
@@ -201,12 +319,12 @@ export function HeroVideo() {
             className="relative z-10 w-full aspect-video object-cover"
             style={{
               mixBlendMode: 'screen',
-              opacity: 0.92,
+              opacity: intro ? 0 : 0.92,
+              transition: 'opacity 0.4s ease',
               maskImage: edgeMask,
               WebkitMaskImage: edgeMask,
             }}
             src={VIDEO_SRC}
-            autoPlay
             muted
             playsInline
             preload="auto"

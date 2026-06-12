@@ -50,14 +50,11 @@ const MOBILE_NAV: { id: Page; label: string; icon: React.FC<{ className?: string
 
 export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFlags }: Props) {
   return (
-    <nav
-      className="sticky top-0 z-50 border-b border-border"
-      style={{ background: 'rgba(4, 9, 26, 0.97)', backdropFilter: 'blur(12px)' }}
-    >
-      <div className="flex items-center justify-between px-4 md:px-6 h-20">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 md:px-6 h-24">
         {/* Logo */}
         <button onClick={() => onNavigate(user ? 'dashboard' : 'landing')} className="shrink-0">
-          <img src={logoImg} alt="MatchPulse" className="h-16 md:h-20 w-auto object-contain" />
+          <img src={logoImg} alt="MatchPulse" className="h-24 md:h-32 w-auto object-contain -my-4" />
         </button>
 
         {/* Primary nav — desktop */}
@@ -73,7 +70,7 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     active
                       ? 'bg-primary/15 text-primary border border-primary/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -98,7 +95,7 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
                       key={item.id}
                       onClick={() => onNavigate(item.id)}
                       title={item.label}
-                      className={`p-1.5 rounded-lg transition-colors ${active ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'}`}
+                      className={`p-1.5 rounded-lg transition-colors ${active ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-foreground/10'}`}
                     >
                       <Icon className="w-4 h-4" />
                     </button>
@@ -115,6 +112,8 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
                 </div>
               )}
 
+              <ThemeToggle />
+
               {/* Avatar */}
               <button
                 onClick={() => onNavigate('profile')}
@@ -125,7 +124,7 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
 
               <button
                 onClick={onLogout}
-                className="hidden md:flex p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
+                className="hidden md:flex p-1.5 rounded-lg hover:bg-foreground/10 text-muted-foreground hover:text-foreground transition-colors"
                 title="Sign out"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -133,9 +132,10 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
             </>
           ) : (
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <button
                 onClick={() => onNavigate('landing')}
-                className="hidden md:flex px-3 py-1.5 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
+                className="hidden md:flex px-3 py-1.5 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
               >
                 Sign In
               </button>
@@ -157,10 +157,7 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
 
 export function MobileNav({ currentPage, onNavigate }: { currentPage: Page; onNavigate: (page: Page) => void }) {
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 xl:hidden flex items-center justify-around border-t border-border py-1.5"
-      style={{ background: 'rgba(4, 9, 26, 0.98)', backdropFilter: 'blur(16px)' }}
-    >
+    <nav className="fixed bottom-0 left-0 right-0 z-50 xl:hidden flex items-center justify-around border-t border-border py-1.5 bg-background/90 backdrop-blur-lg">
       {MOBILE_NAV.map(item => {
         const Icon = item.icon;
         const active = currentPage === item.id;

@@ -152,8 +152,8 @@ export function Landing({ onSignUp, onLogin }: Props) {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Hero */}
-      <section className="relative pt-20 pb-24 px-4 overflow-hidden">
+      {/* Hero — always dark "stadium night" so the video blend reads well */}
+      <section className="dark relative pt-20 pb-24 px-4 overflow-hidden bg-background text-foreground">
         <style>{`
           @keyframes hero-orb-a {
             0%, 100% { transform: translate(0, 0) scale(1); }
@@ -331,8 +331,8 @@ export function Landing({ onSignUp, onLogin }: Props) {
 
       {/* Live / Today's matches */}
       {(liveMatch || upcomingToday.length > 0) && (
-        <section className="px-4 pb-16 max-w-5xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
+        <section className="px-4 py-24 md:py-40 max-w-5xl mx-auto">
+          <div data-aos="fade-up" className="flex items-center gap-3 mb-6">
             {liveMatch && (
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
@@ -347,17 +347,23 @@ export function Landing({ onSignUp, onLogin }: Props) {
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            {liveMatch && <MatchCard match={liveMatch} highlighted />}
-            {upcomingToday.slice(0, liveMatch ? 1 : 2).map(m => (
-              <MatchCard key={m.id} match={m} />
+            {liveMatch && (
+              <div data-aos="fade-up" data-aos-delay="50">
+                <MatchCard match={liveMatch} highlighted />
+              </div>
+            )}
+            {upcomingToday.slice(0, liveMatch ? 1 : 2).map((m, i) => (
+              <div key={m.id} data-aos="fade-up" data-aos-delay={(i + 1) * 100}>
+                <MatchCard match={m} />
+              </div>
             ))}
           </div>
         </section>
       )}
 
       {/* Features */}
-      <section className="px-4 py-16 max-w-5xl mx-auto">
-        <div className="text-center mb-12">
+      <section className="px-4 py-24 md:py-40 max-w-5xl mx-auto">
+        <div data-aos="fade-up" className="text-center mb-12">
           <h2
             className="font-['Barlow_Condensed'] font-black uppercase tracking-tight text-foreground mb-3"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.1 }}
@@ -370,11 +376,13 @@ export function Landing({ onSignUp, onLogin }: Props) {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map(f => {
+          {FEATURES.map((f, i) => {
             const Icon = f.icon;
             return (
               <div
                 key={f.title}
+                data-aos="fade-up"
+                data-aos-delay={(i % 3) * 100}
                 className={`p-5 rounded-xl border ${f.border} ${f.bg} flex flex-col gap-3 hover:scale-[1.01] transition-transform`}
               >
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${f.bg} border ${f.border}`}>
@@ -389,9 +397,10 @@ export function Landing({ onSignUp, onLogin }: Props) {
       </section>
 
       {/* CTA banner */}
-      <section className="px-4 pb-20 max-w-5xl mx-auto">
+      <section className="px-4 py-24 md:py-40 max-w-5xl mx-auto">
         <div
-          className="relative overflow-hidden rounded-2xl p-8 md:p-12 text-center"
+          data-aos="zoom-in"
+          className="dark relative overflow-hidden rounded-2xl p-8 md:p-12 text-center text-foreground"
           style={{ background: 'linear-gradient(135deg, #0A1A3F 0%, #0F1F3D 50%, #1A0A1A 100%)' }}
         >
           <div className="absolute inset-0 pointer-events-none opacity-40"
@@ -424,7 +433,7 @@ export function Landing({ onSignUp, onLogin }: Props) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-4 py-10 text-center">
+      <footer data-aos="fade-up" className="border-t border-border px-4 py-16 text-center">
         <div className="flex justify-center mb-4">
           <img src={wordmarkImg} alt="MatchPulse" className="w-full max-w-xs sm:max-w-sm h-auto object-contain opacity-80" />
         </div>
