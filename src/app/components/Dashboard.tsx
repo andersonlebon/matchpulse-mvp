@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { Calendar, Download, Trophy, Clock, MapPin, ChevronRight, Zap, Star } from 'lucide-react';
 import { CountdownTimer } from './CountdownTimer';
 import { MatchCard } from './MatchCard';
-import {
-  MATCHES, getLiveMatch, getNextMatch, getTodayMatches,
-  getMatchesByTeam, getMatchesByStatus, Match
-} from '../data/matches';
-import { getTeam, GROUPS } from '../data/teams';
+import { Match } from '../data/matches';
+import { GROUPS } from '../data/teams';
 import { downloadICS } from '../utils/icsGenerator';
 import { format } from 'date-fns';
+import { useFootball } from '../context/FootballContext';
+import { DataSourceBadge } from './DataSourceBadge';
 
 interface Props {
   user: { name: string; email: string };
@@ -16,9 +15,13 @@ interface Props {
   onNavigate: (page: 'schedule' | 'export') => void;
 }
 
-function GroupStandingsPreview({ group }: { group: string }) {
+function GroupStandingsPreview({ group, matches, getTeam }: {
+  group: string;
+  matches: Match[];
+  getTeam: (code: string) => ReturnType<typeof import('../data/teams').getTeam>;
+}) {
   const teams = (GROUPS[group] ?? []).map(code => getTeam(code));
-  const groupMatches = MATCHES.filter(m => m.stage === `Group ${group}` && m.status === 'completed');
+  const groupMatches = matches.filter(m => m.stage === `Group ${group}` && m.status === 'completed');
 
   // Build simple standings
   const standings = teams.map(t => {
@@ -63,6 +66,11 @@ function GroupStandingsPreview({ group }: { group: string }) {
 
 export function Dashboard({ user, favTeams, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<'overview' | 'myteams' | 'today'>('overview');
+  const {
+    matches, getTeam, getLiveMatch, getNextMatch, getTodayMatches,
+    getMatchesByTeam, getMatchesByStatus,
+  } = useFootball();
+
   const liveMatch = getLiveMatch();
   const nextFavMatch = getNextMatch(favTeams);
   const nextAnyMatch = getNextMatch();
@@ -75,7 +83,6 @@ export function Dashboard({ user, favTeams, onNavigate }: Props) {
     matches: getMatchesByTeam(code).slice(0, 3),
   }));
 
-  // Get the favTeam groups for standings preview
   const favGroups = [...new Set(favTeams.map(c => getTeam(c).group))];
 
   const firstName = user.name.split(' ')[0];
@@ -99,8 +106,9 @@ export function Dashboard({ user, favTeams, onNavigate }: Props) {
             >
               {greeting}, {firstName}
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 flex-wrap">
               FIFA World Cup 2026 · Day 2 of 39 · Group Stage
+              <DataSourceBadge compact />
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -339,7 +347,7 @@ export function Dashboard({ user, favTeams, onNavigate }: Props) {
                   <span className="text-xs text-muted-foreground">● = Qualified</span>
                 </div>
                 <div className="p-4">
-                  <GroupStandingsPreview group={group} />
+                  <GroupStandingsPreview group={group} matches={matches} getTeam={getTeam} />
                 </div>
               </div>
             ))}
@@ -351,14 +359,14 @@ export function Dashboard({ user, favTeams, onNavigate }: Props) {
               </div>
               <div className="p-4 flex flex-col gap-2">
                 <button
-                  onClick={() => downloadICS(MATCHES.filter(m => !m.homeTeam.startsWith('TBD')), 'wc2026-all.ics')}
+                  onClick={() => downloadICS(matches.filter(m => !m.homeTeam.startsWith('TBD')), 'wc2026-all.ics')}
                   className="flex items-center gap-2 w-full py-2.5 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-white/5 text-foreground transition-colors"
                 >
                   <Download className="w-3.5 h-3.5 text-muted-foreground" />
                   All Group Stage Matches
                 </button>
                 <button
-                  onClick={() => downloadICS(MATCHES.filter(m => !m.stage.startsWith('Group') && !m.homeTeam.startsWith('TBD')), 'wc2026-knockout.ics')}
+                  onClick={() => downloadICS(matches.filter(m => !m.stage.startsWith('Group') && !m.homeTeam.startsWith('TBD')), 'wc2026-knockout.ics')}
                   className="flex items-center gap-2 w-full py-2.5 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-white/5 text-foreground transition-colors"
                 >
                   <Download className="w-3.5 h-3.5 text-muted-foreground" />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { User, Star, Download, Calendar, Bell, Edit2, Check, ChevronRight, LogOut, Shield, Trash2, Copy } from 'lucide-react';
 import { getTeam, getAllTeams } from '../data/teams';
-import { getMatchesByTeam, MATCHES } from '../data/matches';
+import { useFootball } from '../context/FootballContext';
 import { downloadICS } from '../utils/icsGenerator';
 import { format } from 'date-fns';
 import logoImg from '../../imports/MatchPulse_Symbol.png';
@@ -15,11 +15,16 @@ interface Props {
   onNavigate: (page: string) => void;
 }
 
-const STAT_CARDS = (favTeams: string[], user: { name: string; email: string }) => [
+const STAT_CARDS = (
+  favTeams: string[],
+  user: { name: string; email: string },
+  upcomingCount: number,
+  favUpcomingCount: number,
+) => [
   {
     icon: Calendar,
     label: 'Matches Synced',
-    value: String(MATCHES.filter(m => m.status !== 'completed' && m.homeTeam !== 'TBD').length),
+    value: String(upcomingCount),
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
@@ -40,7 +45,7 @@ const STAT_CARDS = (favTeams: string[], user: { name: string; email: string }) =
   {
     icon: Bell,
     label: 'Reminders Set',
-    value: favTeams.length > 0 ? String(favTeams.flatMap(c => getMatchesByTeam(c).filter(m => m.status === 'upcoming')).length) : '0',
+    value: String(favUpcomingCount),
     color: 'text-accent',
     bg: 'bg-accent/10',
   },
@@ -107,8 +112,11 @@ export function Profile({ user, favTeams, onUpdateTeams, onUpdateName, onLogout,
   const [displayName, setDisplayName] = useState(user.name);
   const [nameSaved, setNameSaved] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const { matches, getTeam, getMatchesByTeam } = useFootball();
 
-  const stats = STAT_CARDS(favTeams, user);
+  const upcoming = matches.filter(m => m.status === 'upcoming' && m.homeTeam !== 'TBD');
+  const favUpcoming = upcoming.filter(m => favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam));
+  const stats = STAT_CARDS(favTeams, user, upcoming.length, favUpcoming.length);
   const userId = `MP-${user.email.split('@')[0].toUpperCase().slice(0, 6)}-2026`;
 
   async function saveName() {
@@ -270,7 +278,7 @@ export function Profile({ user, favTeams, onUpdateTeams, onUpdateName, onLogout,
           </div>
           <div className="p-4 flex flex-col gap-2">
             <button
-              onClick={() => downloadICS(MATCHES.filter(m => favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam)).filter(m => m.status === 'upcoming'), 'my-teams.ics')}
+              onClick={() => downloadICS(favUpcoming, 'my-teams.ics')}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:bg-white/5 transition-colors"
             >
               <Download className="w-4 h-4 text-primary shrink-0" />
@@ -281,13 +289,13 @@ export function Profile({ user, favTeams, onUpdateTeams, onUpdateName, onLogout,
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
             <button
-              onClick={() => downloadICS(MATCHES.filter(m => m.status === 'upcoming' && m.homeTeam !== 'TBD'), 'wc2026-full.ics')}
+              onClick={() => downloadICS(upcoming, 'wc2026-full.ics')}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:bg-white/5 transition-colors"
             >
               <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
               <div className="text-left flex-1">
                 <p className="text-sm font-medium text-foreground">Complete Tournament</p>
-                <p className="text-xs text-muted-foreground">All {MATCHES.filter(m => m.status === 'upcoming' && m.homeTeam !== 'TBD').length} upcoming matches</p>
+                <p className="text-xs text-muted-foreground">All {upcoming.length} upcoming matches</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>

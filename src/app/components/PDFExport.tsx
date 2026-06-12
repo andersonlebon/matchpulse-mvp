@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { Printer, Download, FileText, Star, Calendar, Check } from 'lucide-react';
-import { MATCHES, getMatchesByTeam, getGroupStageMatches } from '../data/matches';
-import { getTeam, GROUPS, getAllTeams } from '../data/teams';
+import { GROUPS, getAllTeams } from '../data/teams';
+import { useFootball } from '../context/FootballContext';
+import { DataSourceBadge } from './DataSourceBadge';
 import { format } from 'date-fns';
 import logoImg from '../../imports/MatchPulse_Symbol.png';
 
@@ -24,12 +25,15 @@ export function PDFExport({ favTeams }: Props) {
   const [scope, setScope] = useState<PDFScope>(favTeams.length > 0 ? 'my-teams' : 'full');
   const [printing, setPrinting] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const {
+    matches, getTeam, getMatchesByTeam, getGroupStageMatches, getKnockoutMatches,
+  } = useFootball();
 
   const printMatches = (() => {
     if (scope === 'my-teams') return favTeams.flatMap(c => getMatchesByTeam(c)).sort((a, b) => a.datetime.localeCompare(b.datetime));
     if (scope === 'group-stage') return getGroupStageMatches();
-    if (scope === 'knockout') return MATCHES.filter(m => !m.stage.startsWith('Group'));
-    return MATCHES.filter(m => m.homeTeam !== 'TBD');
+    if (scope === 'knockout') return getKnockoutMatches();
+    return matches.filter(m => m.homeTeam !== 'TBD');
   })();
 
   function handlePrint() {
@@ -50,7 +54,7 @@ export function PDFExport({ favTeams }: Props) {
   // Group standings for full/group-stage scopes
   const groupStandings = GROUP_KEYS.map(group => {
     const teams = (GROUPS[group] ?? []).map(code => getTeam(code));
-    const completedMatches = MATCHES.filter(m => m.stage === `Group ${group}` && m.status === 'completed');
+    const completedMatches = matches.filter(m => m.stage === `Group ${group}` && m.status === 'completed');
     const standings = teams.map(t => {
       let pts = 0, gf = 0, ga = 0;
       completedMatches.filter(m => m.homeTeam === t.code || m.awayTeam === t.code).forEach(m => {
@@ -98,8 +102,9 @@ export function PDFExport({ favTeams }: Props) {
           >
             PDF Schedule Export
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 flex-wrap">
             Print or save a PDF of the World Cup 2026 schedule
+            <DataSourceBadge compact />
           </p>
         </div>
 

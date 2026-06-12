@@ -2,7 +2,7 @@ import { Calendar, Bell, Trophy, Download, ChevronRight, Zap, Globe, Star } from
 import { CountdownTimer } from './CountdownTimer';
 import { MatchCard } from './MatchCard';
 import { HeroVideo } from './HeroVideo';
-import { getLiveMatch, getMatchesByStatus } from '../data/matches';
+import { useFootball } from '../context/FootballContext';
 import wordmarkImg from '../../imports/MatchPulse_Wordmark.png';
 import symbolImg from '../../imports/MatchPulse_Symbol.png';
 
@@ -147,6 +147,7 @@ function CupIcon({ size, color, opacity }: { size: number; color: string; opacit
 const FINAL_DATE = '2026-07-19T20:00:00Z';
 
 export function Landing({ onSignUp, onLogin }: Props) {
+  const { getLiveMatch, getMatchesByStatus } = useFootball();
   const liveMatch = getLiveMatch();
   const upcomingToday = getMatchesByStatus('upcoming').slice(0, 2);
 
