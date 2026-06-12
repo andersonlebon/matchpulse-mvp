@@ -8,7 +8,11 @@ export interface AppUser {
 }
 
 export function mapSupabaseUser(user: SupabaseUser): AppUser {
-  const metadataName = user.user_metadata?.display_name as string | undefined;
+  const metadataName = [
+    user.user_metadata?.display_name,
+    user.user_metadata?.full_name,
+    user.user_metadata?.name,
+  ].find((value): value is string => typeof value === 'string' && value.trim().length > 0);
   const fallbackName = user.email?.split('@')[0] ?? 'Fan';
 
   return {
