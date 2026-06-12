@@ -3,7 +3,7 @@ import { Printer, Download, FileText, Star, Calendar, Check } from 'lucide-react
 import { MATCHES, getMatchesByTeam, getGroupStageMatches } from '../data/matches';
 import { getTeam, GROUPS, getAllTeams } from '../data/teams';
 import { format } from 'date-fns';
-import logoImg from '../../imports/ChatGPT_Image_Jun_11__2026__09_04_24_PM.png';
+import logoImg from '../../imports/MatchPulse_Symbol.png';
 
 interface Props {
   favTeams: string[];

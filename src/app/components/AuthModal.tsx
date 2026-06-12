@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Eye, EyeOff, Loader2 } from 'lucide-react';
-import logoImg from '../../imports/ChatGPT_Image_Jun_11__2026__09_04_24_PM.png';
+import logoImg from '../../imports/MatchPulse_Symbol.png';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '../../lib/auth';
 
@@ -79,28 +79,28 @@ export function AuthModal({ mode, onSuccess, onClose, onSwitchMode }: Props) {
   const inputClass = `w-full px-4 py-3 rounded-lg bg-input-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-all`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-md bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
-        <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, #1A56DB, #E53535)' }} />
+      <div className="relative w-full max-w-md my-auto bg-card border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[94vh]">
+        <div className="h-0.5 w-full shrink-0" style={{ background: 'linear-gradient(90deg, #1A56DB, #E53535)' }} />
 
-        <div className="p-8">
+        <div className="p-6 sm:p-8 overflow-y-auto">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors z-10"
           >
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex justify-center mb-6">
-            <img src={logoImg} alt="MatchPulse" className="h-10 w-auto object-contain" />
+          <div className="flex justify-center mb-5 sm:mb-6">
+            <img src={logoImg} alt="MatchPulse" className="h-12 sm:h-14 w-auto object-contain" />
           </div>
 
-          <div className="flex rounded-lg p-1 bg-secondary mb-8">
+          <div className="flex rounded-lg p-1 bg-secondary mb-6 sm:mb-8">
             <button
               onClick={() => onSwitchMode('signup')}
               className={`flex-1 py-2 rounded-md text-sm font-semibold transition-all ${
@@ -214,7 +214,7 @@ export function AuthModal({ mode, onSuccess, onClose, onSwitchMode }: Props) {
           <button
             onClick={handleGoogle}
             disabled={loading}
-            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-semibold text-foreground border border-border hover:bg-white/5 transition-all disabled:opacity-60"
+            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-semibold text-foreground border border-border hover:bg-foreground/10 transition-all disabled:opacity-60"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

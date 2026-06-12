@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, ChevronRight, Search, Star } from 'lucide-react';
 import { Team } from '../data/teams';
 import { useFootball } from '../context/FootballContext';
-import logoImg from '../../imports/ChatGPT_Image_Jun_11__2026__09_04_24_PM.png';
+import logoImg from '../../imports/MatchPulse_Symbol.png';
 
 interface Props {
   onComplete: (teamCodes: string[]) => void;
@@ -44,7 +44,7 @@ export function Onboarding({ onComplete }: Props) {
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm px-4 py-3">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <img src={logoImg} alt="MatchPulse" className="h-7 w-auto object-contain" />
+          <img src={logoImg} alt="MatchPulse" className="h-10 w-auto object-contain" />
           <div className="flex items-center gap-2">
             {selected.length > 0 && (
               <div className="flex items-center gap-1">
