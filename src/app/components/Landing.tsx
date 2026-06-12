@@ -250,8 +250,9 @@ export function Landing({ onSignUp, onLogin }: Props) {
             </div>
           )}
 
-          {/* Animated, blended video — now the hero centerpiece */}
-          <div data-aos="zoom-in" data-aos-duration="900" className="mx-auto mb-8 md:mb-10 w-full max-w-2xl">
+          {/* Animated, blended video — now the hero centerpiece.
+              On mobile it rests at ~90% of the screen width. */}
+          <div data-aos="zoom-in" data-aos-duration="900" className="mx-auto mb-8 md:mb-10 w-[90vw] sm:w-full sm:max-w-2xl">
             <HeroVideo />
           </div>
 

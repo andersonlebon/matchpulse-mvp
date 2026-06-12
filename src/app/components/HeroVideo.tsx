@@ -245,7 +245,7 @@ export function HeroVideo() {
         </div>
       )}
 
-      <div className="relative w-full max-w-md mx-auto lg:mx-0 lg:max-w-none">
+      <div className="relative w-full mx-auto lg:mx-0">
         <style>{`
           @keyframes hv-float {
             0%, 100% { transform: translateY(0) scale(1); }
