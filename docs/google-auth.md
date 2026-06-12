@@ -2,6 +2,8 @@
 
 MatchPulse uses Supabase Auth for email/password and Google OAuth sign-in. The app code is already wired to call `supabase.auth.signInWithOAuth({ provider: 'google' })`; the remaining setup is in Google Cloud, Supabase, and deployment environment variables.
 
+For email confirmation, invite, magic link, and password reset delivery through the project domain, see [Brevo SMTP setup for Supabase Auth](./brevo-smtp.md).
+
 ## 1. Configure Google Cloud OAuth
 
 1. Open the [Google Auth Platform](https://console.cloud.google.com/auth/overview) for your Google Cloud project.
