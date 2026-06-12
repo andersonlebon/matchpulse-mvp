@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Navigation, MobileNav, Page } from './components/Navigation';
 import { Landing } from './components/Landing';
 import { AuthModal } from './components/AuthModal';
@@ -203,6 +204,8 @@ export default function App() {
           onClose={() => setExportModal({ open: false })}
         />
       )}
+
+      <Analytics />
     </div>
   );
 }
