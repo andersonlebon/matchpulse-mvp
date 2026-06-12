@@ -74,7 +74,7 @@ export const MATCHES: Match[] = [
   // June 21
   { id: 'm029', homeTeam: 'JPN', awayTeam: 'COL', datetime: '2026-06-21T16:00:00Z', venue: 'Lumen Field', city: 'Seattle, WA', country: 'USA', stage: 'Group F', matchday: 2, status: 'upcoming' },
   { id: 'm030', homeTeam: 'MLI', awayTeam: 'CRO', datetime: '2026-06-21T19:00:00Z', venue: 'BC Place', city: 'Vancouver', country: 'Canada', stage: 'Group N', matchday: 2, status: 'upcoming' },
-  { id: 'm031', homeTeam: 'JAM', awayTeam: 'TUR', datetime: '2026-06-21T22:00:00Z', venue: 'Estadio Azteca', city: 'Mexico City', country: 'Mexico', stage: 'Group O', matchday: 2, status: 'upcoming' },
+  { id: 'm031', homeTeam: 'COD', awayTeam: 'TUR', datetime: '2026-06-21T22:00:00Z', venue: 'Estadio Azteca', city: 'Mexico City', country: 'Mexico', stage: 'Group O', matchday: 2, status: 'upcoming' },
   { id: 'm032', homeTeam: 'IRN', awayTeam: 'BEL', datetime: '2026-06-21T22:00:00Z', venue: 'AT&T Stadium', city: 'Dallas, TX', country: 'USA', stage: 'Group P', matchday: 2, status: 'upcoming' },
 
   // ─── MATCHDAY 3 ─────────────────────────────────────────────────

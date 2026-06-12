@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, ChevronRight, Search, Star } from 'lucide-react';
-import { getAllTeams, Team } from '../data/teams';
+import { Team } from '../data/teams';
+import { useFootball } from '../context/FootballContext';
 import logoImg from '../../imports/ChatGPT_Image_Jun_11__2026__09_04_24_PM.png';
 
 interface Props {
@@ -13,7 +14,8 @@ export function Onboarding({ onComplete }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [confFilter, setConfFilter] = useState('All');
-  const allTeams = getAllTeams();
+  const { teams } = useFootball();
+  const allTeams = Object.values(teams).sort((a, b) => a.name.localeCompare(b.name));
 
   const filtered = allTeams.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||

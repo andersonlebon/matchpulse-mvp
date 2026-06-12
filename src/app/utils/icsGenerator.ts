@@ -26,12 +26,12 @@ function buildVEVENT(match: Match): string {
     `Venue: ${match.venue}`,
     `${match.city}, ${match.country}`,
     '',
-    'Sync your schedule at matchpulse.app',
+    'Sync your schedule at matchpulse.live',
   ].join('\\n');
 
   return [
     'BEGIN:VEVENT',
-    `UID:matchpulse-wc2026-${match.id}@matchpulse.app`,
+    `UID:matchpulse-wc2026-${match.id}@matchpulse.live`,
     `DTSTAMP:${formatICSDate(new Date())}`,
     `DTSTART:${formatICSDate(start)}`,
     `DTEND:${formatICSDate(end)}`,

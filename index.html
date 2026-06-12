@@ -3,10 +3,121 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MatchPulse</title>
+
+    <!-- Apply saved theme before paint to avoid a flash -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('mp-theme') || 'dark';
+          if (t === 'system') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.classList.add(t);
+          document.documentElement.style.colorScheme = t;
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
+    <!-- Primary meta -->
+    <title>MatchPulse — FIFA World Cup 2026 Schedule, Reminders & Calendar Sync</title>
+    <meta
+      name="description"
+      content="Follow the FIFA World Cup 2026 with MatchPulse. Sync all 104 matches to Google, Apple, or Outlook Calendar, track your favorite teams, get kick-off reminders, and follow the bracket from Group Stage to the Final. Free forever."
+    />
+    <meta
+      name="keywords"
+      content="FIFA World Cup 2026, World Cup schedule, World Cup 2026 fixtures, match reminders, calendar sync, football calendar, soccer schedule, World Cup bracket, MatchPulse"
+    />
+    <meta name="author" content="MatchPulse" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#1A56DB" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="application-name" content="MatchPulse" />
+    <meta name="apple-mobile-web-app-title" content="MatchPulse" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Canonical (update the domain to your production URL) -->
+    <link rel="canonical" href="https://matchpulse.app/" />
+
+    <!-- Icons & manifest -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MatchPulse" />
+    <meta property="og:title" content="MatchPulse — FIFA World Cup 2026 Schedule & Calendar Sync" />
+    <meta
+      property="og:description"
+      content="Sync all 104 World Cup 2026 matches to your calendar, track your teams, and never miss a kick-off. Free forever."
+    />
+    <meta property="og:url" content="https://matchpulse.app/" />
+    <meta property="og:image" content="https://matchpulse.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MatchPulse — FIFA World Cup 2026 companion app" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MatchPulse — FIFA World Cup 2026 Schedule & Calendar Sync" />
+    <meta
+      name="twitter:description"
+      content="Sync all 104 World Cup 2026 matches to your calendar, track your teams, and never miss a kick-off. Free forever."
+    />
+    <meta name="twitter:image" content="https://matchpulse.app/og-image.png" />
+    <meta name="twitter:image:alt" content="MatchPulse — FIFA World Cup 2026 companion app" />
+
+    <!-- Performance hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "name": "MatchPulse",
+            "url": "https://matchpulse.app/",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Web",
+            "description": "Follow the FIFA World Cup 2026: sync all 104 matches to your calendar, track favorite teams, get reminders, and follow the bracket.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Organization",
+            "name": "MatchPulse",
+            "url": "https://matchpulse.app/",
+            "logo": "https://matchpulse.app/icon-512.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "MatchPulse",
+            "url": "https://matchpulse.app/"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      MatchPulse is your FIFA World Cup 2026 companion — sync all 104 matches to
+      your calendar, track your favorite teams, and get match reminders. Please
+      enable JavaScript to use the app.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

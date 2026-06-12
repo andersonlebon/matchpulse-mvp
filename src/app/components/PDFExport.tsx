@@ -201,7 +201,7 @@ export function PDFExport({ favTeams }: Props) {
             </p>
           )}
           <p style={{ fontSize: '11px', color: '#999', marginTop: '8px' }}>
-            Printed via MatchPulse · matchpulse.app · {format(new Date(), 'MMMM d, yyyy')}
+            Printed via MatchPulse · matchpulse.live · {format(new Date(), 'MMMM d, yyyy')}
           </p>
         </div>
 
@@ -298,7 +298,7 @@ export function PDFExport({ favTeams }: Props) {
         {/* Footer */}
         <div style={{ borderTop: '1px solid #e5e7eb', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#9ca3af' }}>
           <span>MatchPulse — FIFA World Cup 2026</span>
-          <span>matchpulse.app · Not affiliated with FIFA</span>
+          <span>matchpulse.live · Not affiliated with FIFA</span>
           <span>Printed: {format(new Date(), 'MMM d, yyyy')}</span>
         </div>
       </div>

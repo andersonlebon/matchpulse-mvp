@@ -84,6 +84,7 @@ export const TEAMS: Record<string, Team> = {
   // Group O
   TUR: { code: 'TUR', name: 'Turkey', flag: '🇹🇷', group: 'O', confederation: 'UEFA', primaryColor: '#E30A17', secondaryColor: '#FFFFFF' },
   RSA: { code: 'RSA', name: 'South Africa', flag: '🇿🇦', group: 'O', confederation: 'CAF', primaryColor: '#007A4D', secondaryColor: '#FFB81C' },
+  COD: { code: 'COD', name: 'DR Congo', flag: '🇨🇩', group: 'O', confederation: 'CAF', primaryColor: '#007FFF', secondaryColor: '#F7D618' },
   JAM: { code: 'JAM', name: 'Jamaica', flag: '🇯🇲', group: 'O', confederation: 'CONCACAF', primaryColor: '#000000', secondaryColor: '#F9C623' },
 
   // Group P
@@ -107,7 +108,7 @@ export const GROUPS: Record<string, string[]> = {
   L: ['NED', 'UZB', 'TTO'],
   M: ['ITA', 'JOR', 'HON'],
   N: ['CRO', 'NOR', 'MLI'],
-  O: ['TUR', 'RSA', 'JAM'],
+  O: ['TUR', 'RSA', 'COD'],
   P: ['BEL', 'GHA', 'IRN'],
 };
 

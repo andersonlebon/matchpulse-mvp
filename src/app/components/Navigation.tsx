@@ -1,5 +1,6 @@
 import { LayoutDashboard, Calendar, Trophy, ShoppingBag, Download, FileText, Bell, Sparkles, GitBranch, LogOut, Zap, UserCircle } from 'lucide-react';
-import logoImg from '../../imports/ChatGPT_Image_Jun_11__2026__09_04_24_PM.png';
+import logoImg from '../../imports/MatchPulse_Symbol.png';
+import { ThemeToggle } from './ThemeToggle';
 
 export type Page =
   | 'landing'
@@ -53,10 +54,10 @@ export function Navigation({ currentPage, onNavigate, user, onLogout, favTeamFla
       className="sticky top-0 z-50 border-b border-border"
       style={{ background: 'rgba(4, 9, 26, 0.97)', backdropFilter: 'blur(12px)' }}
     >
-      <div className="flex items-center justify-between px-4 md:px-6 h-12">
+      <div className="flex items-center justify-between px-4 md:px-6 h-20">
         {/* Logo */}
         <button onClick={() => onNavigate(user ? 'dashboard' : 'landing')} className="shrink-0">
-          <img src={logoImg} alt="MatchPulse" className="h-6 w-auto object-contain" />
+          <img src={logoImg} alt="MatchPulse" className="h-16 md:h-20 w-auto object-contain" />
         </button>
 
         {/* Primary nav — desktop */}

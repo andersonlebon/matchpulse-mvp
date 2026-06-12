@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Search, Download, Calendar, Filter, ChevronDown } from 'lucide-react';
+import { Search, Download, Calendar, Filter, ChevronDown, Radio } from 'lucide-react';
 import { MatchCard } from './MatchCard';
-import { MATCHES, getMatchesByGroup, getGroupStageMatches, getKnockoutMatches, Match } from '../data/matches';
-import { getTeam, getGroupTeams, GROUPS } from '../data/teams';
+import { Match } from '../data/matches';
+import { GROUPS } from '../data/teams';
 import { downloadICS } from '../utils/icsGenerator';
 import { format } from 'date-fns';
+import { useFootball } from '../context/FootballContext';
+import { GroupDetailModal } from './GroupDetailModal';
+import { MatchDetailModal } from './MatchDetailModal';
 
 type View = 'groups' | 'knockout' | 'all';
 
@@ -14,16 +17,13 @@ interface Props {
 }
 
 const GROUP_KEYS = Object.keys(GROUPS);
+const KNOCKOUT_STAGES = ['Round of 32', 'Round of 16', 'Quarter-Final', 'Semi-Final', 'Third Place', 'Final'];
 
-function GroupCard({ group, favTeams }: { group: string; favTeams: string[] }) {
-  const [expanded, setExpanded] = useState(false);
-  const teams = getGroupTeams(group);
-  const matches = getMatchesByGroup(group);
-  const completedMatches = matches.filter(m => m.status === 'completed');
-
-  // Standings
-  const standings = teams.map(t => {
-    const played = completedMatches.filter(m => m.homeTeam === t.code || m.awayTeam === t.code);
+function buildStandings(group: string, matches: Match[], getTeam: (c: string) => ReturnType<typeof import('../data/teams').getTeam>) {
+  const teams = (GROUPS[group] ?? []).map(code => getTeam(code));
+  const completed = matches.filter(m => m.status === 'completed');
+  return teams.map(t => {
+    const played = completed.filter(m => m.homeTeam === t.code || m.awayTeam === t.code);
     let pts = 0, gf = 0, ga = 0, w = 0, d = 0, l = 0;
     played.forEach(m => {
       const isHome = m.homeTeam === t.code;
@@ -34,17 +34,31 @@ function GroupCard({ group, favTeams }: { group: string; favTeams: string[] }) {
       else if (tG === oG) { pts += 1; d++; }
       else l++;
     });
-    return { ...t, pts, gf, ga, gd: gf - ga, played: played.length, w, d, l };
+    return { code: t.code, name: t.name, flag: t.flag, pts, gf, ga, gd: gf - ga, played: played.length, w, d, l };
   }).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+}
 
+function GroupCard({
+  group, favTeams, onOpenGroup, getTeam, getMatchesByGroup,
+}: {
+  group: string;
+  favTeams: string[];
+  onOpenGroup: (g: string) => void;
+  getTeam: (c: string) => ReturnType<typeof import('../data/teams').getTeam>;
+  getMatchesByGroup: (g: string) => Match[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const teams = (GROUPS[group] ?? []).map(code => getTeam(code));
+  const matches = getMatchesByGroup(group);
+  const standings = buildStandings(group, matches, getTeam);
   const isFavGroup = teams.some(t => favTeams.includes(t.code));
 
   return (
     <div className={`rounded-xl border overflow-hidden transition-all ${isFavGroup ? 'border-primary/30' : 'border-border'}`}>
-      {/* Header */}
       <button
+        type="button"
         className="w-full flex items-center justify-between px-4 py-3 bg-card hover:bg-white/[0.02] transition-colors"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => onOpenGroup(group)}
       >
         <div className="flex items-center gap-3">
           <span
@@ -68,20 +82,13 @@ function GroupCard({ group, favTeams }: { group: string; favTeams: string[] }) {
             <span className="text-xs text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded">Your Group</span>
           )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        <ChevronDown className="w-4 h-4 text-muted-foreground" />
       </button>
 
-      {/* Standings table */}
       <div className="border-t border-border bg-card px-4 py-3">
         <div className="grid gap-1">
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-x-3 text-muted-foreground uppercase tracking-wider px-1 mb-1" style={{ fontSize: '0.6rem' }}>
-            <span>Team</span>
-            <span>P</span>
-            <span>W</span>
-            <span>D</span>
-            <span>L</span>
-            <span>GD</span>
-            <span>Pts</span>
+            <span>Team</span><span>P</span><span>W</span><span>D</span><span>L</span><span>GD</span><span>Pts</span>
           </div>
           {standings.map((t, i) => (
             <div
@@ -93,81 +100,48 @@ function GroupCard({ group, favTeams }: { group: string; favTeams: string[] }) {
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>{t.flag}</span>
                 <span className="truncate font-medium">{t.name}</span>
-                {i < 2 && <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] shrink-0 opacity-80" />}
               </span>
-              <span className="font-['JetBrains_Mono'] text-center text-xs">{t.played}</span>
-              <span className="font-['JetBrains_Mono'] text-center text-xs">{t.w}</span>
-              <span className="font-['JetBrains_Mono'] text-center text-xs">{t.d}</span>
-              <span className="font-['JetBrains_Mono'] text-center text-xs">{t.l}</span>
-              <span className="font-['JetBrains_Mono'] text-center text-xs">{t.gd > 0 ? '+' : ''}{t.gd}</span>
-              <span className="font-['JetBrains_Mono'] font-bold text-center text-xs text-foreground">{t.pts}</span>
+              <span className="font-['JetBrains_Mono'] text-center">{t.played}</span>
+              <span className="font-['JetBrains_Mono'] text-center">{t.w}</span>
+              <span className="font-['JetBrains_Mono'] text-center">{t.d}</span>
+              <span className="font-['JetBrains_Mono'] text-center">{t.l}</span>
+              <span className="font-['JetBrains_Mono'] text-center">{t.gd > 0 ? '+' : ''}{t.gd}</span>
+              <span className="font-['JetBrains_Mono'] font-bold text-center text-foreground">{t.pts}</span>
             </div>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          className="mt-2 text-xs text-primary font-semibold hover:underline"
+        >
+          {expanded ? 'Hide quick preview' : `Preview ${matches.length} matches`}
+        </button>
       </div>
 
-      {/* Matches */}
       {expanded && (
         <div className="border-t border-border bg-background/50 p-3 flex flex-col gap-2">
-          {matches.map(m => (
+          {matches.slice(0, 3).map(m => (
             <MatchCard key={m.id} match={m} compact highlighted={favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam)} />
           ))}
-          <button
-            onClick={() => downloadICS(matches.filter(m => m.status !== 'completed'), `group-${group}.ics`)}
-            className="w-full py-2 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors mt-1 flex items-center justify-center gap-2"
-          >
-            <Download className="w-3 h-3" />
-            Export Group {group} to Calendar
-          </button>
         </div>
       )}
     </div>
   );
 }
 
-const KNOCKOUT_STAGES = ['Round of 32', 'Round of 16', 'Quarter-Final', 'Semi-Final', 'Third Place', 'Final'];
-
-function KnockoutView({ favTeams }: { favTeams: string[] }) {
-  return (
-    <div className="flex flex-col gap-8">
-      {KNOCKOUT_STAGES.map(stage => {
-        const stageMatches = MATCHES.filter(m => m.stage === stage);
-        if (stageMatches.length === 0) return null;
-        return (
-          <div key={stage}>
-            <div className="flex items-center gap-3 mb-4">
-              <h3
-                className="font-['Barlow_Condensed'] font-bold uppercase text-foreground"
-                style={{ fontSize: '1.25rem' }}
-              >
-                {stage}
-              </h3>
-              <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded">
-                {stageMatches[0] && format(new Date(stageMatches[0].datetime), 'MMM d')}
-                {stageMatches.length > 1 && ` – ${format(new Date(stageMatches[stageMatches.length - 1].datetime), 'MMM d')}`}
-              </span>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {stageMatches.map(m => (
-                <MatchCard key={m.id} match={m} />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function Schedule({ favTeams, onExportMatch }: Props) {
+  const { matches, isLive, getTeam, getMatchesByGroup } = useFootball();
   const [view, setView] = useState<View>('groups');
   const [search, setSearch] = useState('');
   const [showFavOnly, setShowFavOnly] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const allMatches = useMemo(() => {
-    let list = view === 'all' ? MATCHES
-      : view === 'groups' ? getGroupStageMatches()
-      : getKnockoutMatches();
+    let list = view === 'all' ? matches
+      : view === 'groups' ? matches.filter(m => m.stage.startsWith('Group'))
+      : matches.filter(m => !m.stage.startsWith('Group'));
 
     if (search) {
       const q = search.toLowerCase();
@@ -176,7 +150,9 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
         getTeam(m.awayTeam).name.toLowerCase().includes(q) ||
         m.venue.toLowerCase().includes(q) ||
         m.city.toLowerCase().includes(q) ||
-        m.stage.toLowerCase().includes(q)
+        m.stage.toLowerCase().includes(q) ||
+        m.homeTeam.toLowerCase().includes(q) ||
+        m.awayTeam.toLowerCase().includes(q)
       );
     }
 
@@ -185,7 +161,7 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
     }
 
     return list;
-  }, [view, search, showFavOnly, favTeams]);
+  }, [view, search, showFavOnly, favTeams, matches, getTeam]);
 
   const groupedByDate = useMemo(() => {
     const map = new Map<string, Match[]>();
@@ -199,11 +175,16 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
 
   const exportable = allMatches.filter(m => m.status === 'upcoming' && m.homeTeam !== 'TBD');
 
+  const groupModalData = selectedGroup ? {
+    teams: (GROUPS[selectedGroup] ?? []).map(c => getTeam(c)),
+    matches: getMatchesByGroup(selectedGroup),
+    standings: buildStandings(selectedGroup, getMatchesByGroup(selectedGroup), getTeam),
+  } : null;
+
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="max-w-5xl mx-auto px-4 py-6">
 
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h1
@@ -212,8 +193,13 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
             >
               World Cup 2026 Schedule
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              48 teams · 104 matches · June 11 – July 19 · USA, Canada & Mexico
+            <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 flex-wrap">
+              <span>48 teams · {matches.length} matches · USA, Canada & Mexico</span>
+              {isLive && (
+                <span className="inline-flex items-center gap-1 text-[#16A34A] text-xs font-semibold">
+                  <Radio className="w-3 h-3" /> Live data
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -226,16 +212,13 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
           </button>
         </div>
 
-        {/* View tabs */}
         <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary mb-5 w-fit">
           {(['groups', 'knockout', 'all'] as View[]).map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={`px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all ${
-                view === v
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                view === v ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {v === 'all' ? 'All Matches' : v === 'groups' ? 'Group Stage' : 'Knockout'}
@@ -243,13 +226,12 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
           ))}
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search team, venue, city..."
+              placeholder="Search team (e.g. DR Congo), venue, city..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-input-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 transition-all text-sm"
@@ -259,9 +241,7 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
             <button
               onClick={() => setShowFavOnly(!showFavOnly)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
-                showFavOnly
-                  ? 'bg-primary/15 text-primary border-primary/30'
-                  : 'border-border text-muted-foreground hover:border-white/20 hover:text-foreground'
+                showFavOnly ? 'bg-primary/15 text-primary border-primary/30' : 'border-border text-muted-foreground hover:border-white/20'
               }`}
             >
               <Filter className="w-4 h-4" />
@@ -270,15 +250,38 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
           )}
         </div>
 
-        {/* Content */}
         {view === 'groups' && !search && !showFavOnly ? (
           <div className="grid md:grid-cols-2 gap-4">
             {GROUP_KEYS.map(g => (
-              <GroupCard key={g} group={g} favTeams={favTeams} />
+              <GroupCard
+                key={g}
+                group={g}
+                favTeams={favTeams}
+                onOpenGroup={setSelectedGroup}
+                getTeam={getTeam}
+                getMatchesByGroup={getMatchesByGroup}
+              />
             ))}
           </div>
         ) : view === 'knockout' && !search && !showFavOnly ? (
-          <KnockoutView favTeams={favTeams} />
+          <div className="flex flex-col gap-8">
+            {KNOCKOUT_STAGES.map(stage => {
+              const stageMatches = matches.filter(m => m.stage === stage);
+              if (stageMatches.length === 0) return null;
+              return (
+                <div key={stage}>
+                  <h3 className="font-['Barlow_Condensed'] font-bold uppercase text-foreground mb-4" style={{ fontSize: '1.25rem' }}>
+                    {stage}
+                  </h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {stageMatches.map(m => (
+                      <MatchCard key={m.id} match={m} onClick={setSelectedMatch} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="flex flex-col gap-6">
             {allMatches.length === 0 ? (
@@ -289,14 +292,9 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
             ) : (
               Array.from(groupedByDate.entries()).map(([day, dayMatches]) => (
                 <div key={day}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="font-semibold text-muted-foreground text-sm">
-                      {format(new Date(day + 'T12:00:00Z'), 'EEEE, MMMM d, yyyy')}
-                    </h3>
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
-                      {dayMatches.length} match{dayMatches.length !== 1 ? 'es' : ''}
-                    </span>
-                  </div>
+                  <h3 className="font-semibold text-muted-foreground text-sm mb-3">
+                    {format(new Date(day + 'T12:00:00Z'), 'EEEE, MMMM d, yyyy')}
+                  </h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {dayMatches.map(m => (
                       <MatchCard
@@ -304,6 +302,7 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
                         match={m}
                         highlighted={favTeams.includes(m.homeTeam) || favTeams.includes(m.awayTeam)}
                         onExport={onExportMatch}
+                        onClick={setSelectedMatch}
                       />
                     ))}
                   </div>
@@ -313,6 +312,26 @@ export function Schedule({ favTeams, onExportMatch }: Props) {
           </div>
         )}
       </div>
+
+      {selectedGroup && groupModalData && (
+        <GroupDetailModal
+          group={selectedGroup}
+          teams={groupModalData.teams}
+          matches={groupModalData.matches}
+          standings={groupModalData.standings}
+          favTeams={favTeams}
+          onClose={() => setSelectedGroup(null)}
+          onMatchClick={(m) => { setSelectedGroup(null); setSelectedMatch(m); }}
+        />
+      )}
+
+      {selectedMatch && (
+        <MatchDetailModal
+          match={selectedMatch}
+          getTeam={getTeam}
+          onClose={() => setSelectedMatch(null)}
+        />
+      )}
     </div>
   );
 }

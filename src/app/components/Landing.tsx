@@ -69,6 +69,80 @@ const STATS = [
   { value: '39', label: 'Days' },
 ];
 
+// Project palette used to tint the floating decorations
+const C_BLUE = '#1A56DB';
+const C_RED = '#E53535';
+const C_PURPLE = '#8B5CF6';
+
+// Lots of soccer balls + trophies drifting across the hero, brand-colored,
+// kept at low opacity so they read as ambient texture.
+type Floater = {
+  type: 'ball' | 'cup';
+  top: string;
+  left: string;
+  size: number;
+  color: string;
+  opacity: number;
+  anim: 'hero-drift' | 'hero-bob';
+  duration: number;
+  delay: number;
+};
+
+const FLOATERS: Floater[] = [
+  { type: 'ball', top: '10%', left: '5%', size: 56, color: C_BLUE, opacity: 0.14, anim: 'hero-drift', duration: 19, delay: 0 },
+  { type: 'cup', top: '18%', left: '90%', size: 48, color: C_RED, opacity: 0.13, anim: 'hero-bob', duration: 7, delay: 0.4 },
+  { type: 'ball', top: '70%', left: '93%', size: 40, color: C_PURPLE, opacity: 0.12, anim: 'hero-drift', duration: 23, delay: 1.2 },
+  { type: 'cup', top: '76%', left: '3%', size: 44, color: C_BLUE, opacity: 0.13, anim: 'hero-bob', duration: 8, delay: 0.9 },
+  { type: 'ball', top: '42%', left: '48%', size: 34, color: C_RED, opacity: 0.08, anim: 'hero-drift', duration: 27, delay: 2 },
+  { type: 'cup', top: '6%', left: '44%', size: 32, color: C_PURPLE, opacity: 0.1, anim: 'hero-bob', duration: 9, delay: 2.4 },
+  { type: 'ball', top: '30%', left: '20%', size: 30, color: C_BLUE, opacity: 0.1, anim: 'hero-drift', duration: 21, delay: 0.7 },
+  { type: 'ball', top: '85%', left: '34%', size: 38, color: C_RED, opacity: 0.1, anim: 'hero-drift', duration: 24, delay: 1.8 },
+  { type: 'cup', top: '52%', left: '8%', size: 30, color: C_PURPLE, opacity: 0.1, anim: 'hero-bob', duration: 7.5, delay: 1.4 },
+  { type: 'cup', top: '60%', left: '70%', size: 36, color: C_BLUE, opacity: 0.11, anim: 'hero-bob', duration: 8.5, delay: 0.3 },
+  { type: 'ball', top: '15%', left: '70%', size: 28, color: C_PURPLE, opacity: 0.09, anim: 'hero-drift', duration: 25, delay: 2.6 },
+  { type: 'cup', top: '38%', left: '82%', size: 30, color: C_RED, opacity: 0.1, anim: 'hero-bob', duration: 9.5, delay: 1.1 },
+  { type: 'ball', top: '88%', left: '78%', size: 32, color: C_BLUE, opacity: 0.1, anim: 'hero-drift', duration: 20, delay: 0.6 },
+  { type: 'ball', top: '4%', left: '24%', size: 26, color: C_RED, opacity: 0.08, anim: 'hero-drift', duration: 28, delay: 2.2 },
+  { type: 'cup', top: '46%', left: '32%', size: 26, color: C_PURPLE, opacity: 0.08, anim: 'hero-bob', duration: 8, delay: 1.7 },
+  { type: 'ball', top: '64%', left: '54%', size: 24, color: C_BLUE, opacity: 0.07, anim: 'hero-drift', duration: 26, delay: 3 },
+];
+
+function BallIcon({ size, color, opacity }: { size: number; color: string; opacity: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ opacity }} aria-hidden>
+      <circle cx="32" cy="32" r="29" stroke={color} strokeWidth="3" />
+      <path
+        d="M32 14l9 6.5-3.4 10.6h-11.2L23 20.5 32 14z"
+        fill={color}
+        fillOpacity="0.55"
+      />
+      <path
+        d="M32 14V5M41 20.5l8-3.5M37.6 31.1l6.6 6.4M26.4 31.1l-6.6 6.4M23 20.5l-8-3.5"
+        stroke={color}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CupIcon({ size, color, opacity }: { size: number; color: string; opacity: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ opacity }} aria-hidden>
+      <path
+        d="M20 10h24v10a12 12 0 01-24 0V10z"
+        fill={color}
+        fillOpacity="0.5"
+        stroke={color}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M20 14h-7v4a8 8 0 008 8M44 14h7v4a8 8 0 01-8 8" stroke={color} strokeWidth="3" strokeLinecap="round" />
+      <path d="M32 32v9M24 50h16M28 50c0-5 8-5 8 0" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // Tournament start was June 11 — it's already underway! The Final is July 19.
 const FINAL_DATE = '2026-07-19T20:00:00Z';
 
@@ -81,10 +155,6 @@ export function Landing({ onSignUp, onLogin }: Props) {
       {/* Hero */}
       <section className="relative pt-20 pb-24 px-4 overflow-hidden">
         <style>{`
-          @keyframes hero-rise {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
           @keyframes hero-orb-a {
             0%, 100% { transform: translate(0, 0) scale(1); }
             50% { transform: translate(40px, 30px) scale(1.15); }
@@ -101,13 +171,19 @@ export function Landing({ onSignUp, onLogin }: Props) {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
           }
-          @keyframes hero-stat-pop {
-            from { opacity: 0; transform: translateY(12px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+          @keyframes hero-drift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(24px, -32px) rotate(90deg); }
+            50% { transform: translate(-16px, -56px) rotate(180deg); }
+            75% { transform: translate(-30px, -24px) rotate(270deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
           }
-          .hero-rise { opacity: 0; animation: hero-rise 0.7s cubic-bezier(.21,.6,.35,1) forwards; }
+          @keyframes hero-bob {
+            0%, 100% { transform: translateY(0) rotate(-8deg); }
+            50% { transform: translateY(-22px) rotate(8deg); }
+          }
           @media (prefers-reduced-motion: reduce) {
-            .hero-rise { opacity: 1; animation: none; }
+            .hero-floater { animation: none !important; }
           }
         `}</style>
 
@@ -132,20 +208,32 @@ export function Landing({ onSignUp, onLogin }: Props) {
           <div className="absolute top-1/3 right-1/4 w-[320px] h-[320px] rounded-full opacity-10"
             style={{ background: 'radial-gradient(ellipse, #8B5CF6 0%, transparent 70%)', animation: 'hero-orb-a 18s ease-in-out infinite reverse' }}
           />
+
+          {/* Floating soccer balls + World Cup trophies, brand-colored */}
+          {FLOATERS.map((f, i) => (
+            <span
+              key={i}
+              className="hero-floater absolute"
+              style={{
+                top: f.top,
+                left: f.left,
+                animation: `${f.anim} ${f.duration}s ease-in-out ${f.delay}s infinite`,
+              }}
+              aria-hidden
+            >
+              {f.type === 'ball' ? (
+                <BallIcon size={f.size} color={f.color} opacity={f.opacity} />
+              ) : (
+                <CupIcon size={f.size} color={f.color} opacity={f.opacity} />
+              )}
+            </span>
+          ))}
         </div>
 
-        <div className="relative max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
-            {/* Left — animated, blended video */}
-            <div className="hero-rise" style={{ animationDelay: '0.1s' }}>
-              <HeroVideo />
-            </div>
-
-            {/* Right — copy & CTAs */}
-            <div className="text-center lg:text-left">
+        <div className="relative max-w-3xl mx-auto text-center">
           {/* Live badge */}
           {liveMatch && (
-            <div className="hero-rise inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-accent/30 bg-accent/10">
+            <div data-aos="fade-down" className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-accent/30 bg-accent/10">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <span className="text-sm font-semibold text-accent">
                 LIVE NOW — See live match below ↓
@@ -154,7 +242,7 @@ export function Landing({ onSignUp, onLogin }: Props) {
           )}
 
           {!liveMatch && (
-            <div className="hero-rise inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-primary/30 bg-primary/10">
+            <div data-aos="fade-down" className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-primary/30 bg-primary/10">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-primary">
                 FIFA World Cup 2026 — In Progress
@@ -162,18 +250,15 @@ export function Landing({ onSignUp, onLogin }: Props) {
             </div>
           )}
 
-          {/* Brand wordmark — transparent PNG, no black plate */}
-          <div className="hero-rise flex justify-center lg:justify-start mb-6 md:mb-8 px-2 lg:px-0" style={{ animationDelay: '0.15s' }}>
-            <img
-              src={wordmarkImg}
-              alt="MatchPulse"
-              className="w-full max-w-sm sm:max-w-md md:max-w-lg h-auto object-contain"
-            />
+          {/* Animated, blended video — now the hero centerpiece */}
+          <div data-aos="zoom-in" data-aos-duration="900" className="mx-auto mb-8 md:mb-10 w-full max-w-2xl">
+            <HeroVideo />
           </div>
 
           <h1
-            className="hero-rise font-['Barlow_Condensed'] font-black uppercase tracking-tight mb-6"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.0, animationDelay: '0.25s' }}
+            data-aos="fade-up"
+            className="font-['Barlow_Condensed'] font-black uppercase tracking-tight mb-6"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.0 }}
           >
             <span className="text-foreground">Never Miss A</span>
             <br />
@@ -191,12 +276,12 @@ export function Landing({ onSignUp, onLogin }: Props) {
             </span>
           </h1>
 
-          <p className="hero-rise text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed" style={{ fontSize: '1.125rem', animationDelay: '0.35s' }}>
+          <p data-aos="fade-up" data-aos-delay="100" className="text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed" style={{ fontSize: '1.125rem' }}>
             Sync the entire FIFA World Cup 2026 schedule to your calendar. Track your favorite teams,
             get match reminders, and follow every game — from Group Stage to the Final.
           </p>
 
-          <div className="hero-rise flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 mb-10 lg:mb-0" style={{ animationDelay: '0.45s' }}>
+          <div data-aos="zoom-in" data-aos-delay="200" className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={onSignUp}
               className="group flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all hover:scale-105 active:scale-95 hover:shadow-[0_0_44px_rgba(26,86,219,0.55)]"
@@ -212,8 +297,6 @@ export function Landing({ onSignUp, onLogin }: Props) {
               Sign In
             </button>
           </div>
-            </div>
-          </div>
 
           {/* Stats + countdown — full width below hero grid */}
           <div className="mt-16 text-center">
@@ -222,8 +305,9 @@ export function Landing({ onSignUp, onLogin }: Props) {
             {STATS.map((stat, i) => (
               <div
                 key={stat.label}
+                data-aos="zoom-in"
+                data-aos-delay={i * 100}
                 className="flex flex-col items-center"
-                style={{ opacity: 0, animation: `hero-stat-pop 0.6s ease-out forwards`, animationDelay: `${0.55 + i * 0.1}s` }}
               >
                 <span
                   className="font-['Barlow_Condensed'] font-black text-foreground"
@@ -237,7 +321,7 @@ export function Landing({ onSignUp, onLogin }: Props) {
           </div>
 
           {/* Final countdown */}
-          <div className="hero-rise inline-flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border border-border bg-card hover:border-primary/30 transition-colors" style={{ animationDelay: '0.95s' }}>
+          <div data-aos="zoom-in" className="inline-flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border border-border bg-card hover:border-primary/30 transition-colors">
             <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Grand Final · July 19 · MetLife Stadium</span>
             <CountdownTimer targetDate={FINAL_DATE} size="lg" />
           </div>
@@ -340,9 +424,9 @@ export function Landing({ onSignUp, onLogin }: Props) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-4 py-8 text-center">
+      <footer className="border-t border-border px-4 py-10 text-center">
         <div className="flex justify-center mb-4">
-          <img src={symbolImg} alt="MatchPulse" className="h-10 w-auto object-contain opacity-70" />
+          <img src={wordmarkImg} alt="MatchPulse" className="w-full max-w-xs sm:max-w-sm h-auto object-contain opacity-80" />
         </div>
         <p className="text-xs text-muted-foreground">
           © 2026 MatchPulse · FIFA World Cup 2026 Edition · Not affiliated with FIFA

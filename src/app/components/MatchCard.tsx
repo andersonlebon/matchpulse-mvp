@@ -9,6 +9,7 @@ interface Props {
   highlighted?: boolean;
   compact?: boolean;
   onExport?: (match: Match) => void;
+  onClick?: (match: Match) => void;
 }
 
 function StatusBadge({ status, minute }: { status: Match['status']; minute?: number }) {
@@ -34,7 +35,7 @@ function StatusBadge({ status, minute }: { status: Match['status']; minute?: num
   );
 }
 
-export function MatchCard({ match, highlighted = false, compact = false, onExport }: Props) {
+export function MatchCard({ match, highlighted = false, compact = false, onExport, onClick }: Props) {
   const home = getTeam(match.homeTeam);
   const away = getTeam(match.awayTeam);
   const isTBD = match.homeTeam === 'TBD';
@@ -71,8 +72,13 @@ export function MatchCard({ match, highlighted = false, compact = false, onExpor
     );
   }
 
+  const Wrapper = onClick ? 'button' : 'div';
+  const wrapperProps = onClick
+    ? { type: 'button' as const, onClick: () => onClick(match), className: `w-full text-left rounded-xl border ${cardBg} overflow-hidden transition-all hover:border-primary/40 group cursor-pointer` }
+    : { className: `rounded-xl border ${cardBg} overflow-hidden transition-all hover:border-primary/40 group` };
+
   return (
-    <div className={`rounded-xl border ${cardBg} overflow-hidden transition-all hover:border-primary/40 group`}>
+    <Wrapper {...wrapperProps}>
       {/* Stage bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-white/[0.02]">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -160,6 +166,6 @@ export function MatchCard({ match, highlighted = false, compact = false, onExpor
           </button>
         </div>
       )}
-    </div>
+    </Wrapper>
   );
 }
